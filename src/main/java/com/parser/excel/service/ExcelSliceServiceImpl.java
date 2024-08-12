@@ -1,11 +1,11 @@
 package com.parser.excel.service;
 
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -44,6 +44,14 @@ public class ExcelSliceServiceImpl implements ExcelSliceService {
             }
         }
       
+        Row firstRow = newSheet.getRow(0);
+        if(firstRow!=null) {
+         int numberOfColumns=firstRow.getPhysicalNumberOfCells();
+         for (int i = 0; i < numberOfColumns; i++) {
+             newSheet.autoSizeColumn(i);
+         }
+        }
+        
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         newWorkbook.write(outputStream);
 
@@ -51,18 +59,8 @@ public class ExcelSliceServiceImpl implements ExcelSliceService {
         newWorkbook.close();
 
         byte[] excelBytes = outputStream.toByteArray();
-        
-     // Create a DateTimeFormatter to format the date
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        
-        // Get the current date
-        LocalDate currentDate = LocalDate.now();
-        
-        // Format the current date
-        String formattedDate = currentDate.format(formatter);
         if(newRowNum>0) {
-	        emailService.sendEmailWithAttachment(user.getEmail(), "Excel File Attached", "Please find the Excel file attached.", excelBytes, user.getName()+ "_"+formattedDate +".xlsx");
-	
+	        emailService.sendEmailWithAttachment(user.getEmail(), "Excel File Attached", "Please find the Excel file attached.", excelBytes, user.getName()+".xlsx");
 	        System.out.println("ESJSSK*************************");
         }
         }catch(Exception e){
@@ -74,6 +72,7 @@ public class ExcelSliceServiceImpl implements ExcelSliceService {
     }
 
     private void copyRow(Row source, Row destination) {
+    	
         for (int i = 0; i < source.getLastCellNum(); i++) {
             Cell oldCell = source.getCell(i);
             Cell newCell = destination.createCell(i);
@@ -81,19 +80,28 @@ public class ExcelSliceServiceImpl implements ExcelSliceService {
             if (oldCell != null) {
                 switch (oldCell.getCellType()) {
                     case STRING:
-                       
                         newCell.setCellValue(oldCell.getStringCellValue());
                         break;
                     case NUMERIC:
-                        newCell.setCellValue(oldCell.getNumericCellValue());
+                    
+                    	 if (DateUtil.isCellDateFormatted(oldCell)) {
+                             
+                             Date date = oldCell.getDateCellValue();
+                             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                             newCell.setCellValue(dateFormat.format(date));
+                         } else {
+                             newCell.setCellValue(oldCell.getNumericCellValue());
+                         }
                         break;
                     case BOOLEAN:
                         newCell.setCellValue(oldCell.getBooleanCellValue());
                         break;
                     case FORMULA:
+                    	
                         newCell.setCellFormula(oldCell.getCellFormula());
                         break;
                     default:
+                       
                         newCell.setCellValue(oldCell.getStringCellValue());
                         break;
                 }
