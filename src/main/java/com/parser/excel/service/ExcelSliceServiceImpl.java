@@ -3,7 +3,8 @@ package com.parser.excel.service;
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -59,8 +60,16 @@ public class ExcelSliceServiceImpl implements ExcelSliceService {
         newWorkbook.close();
 
         byte[] excelBytes = outputStream.toByteArray();
+     // Create a DateTimeFormatter to format the date
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        // Get the current date
+        LocalDate currentDate = LocalDate.now();
+
+        // Format the current date
+        String formattedDate = currentDate.format(formatter);
         if(newRowNum>0) {
-	        emailService.sendEmailWithAttachment(user.getEmail(), "Excel File Attached", "Please find the Excel file attached.", excelBytes, user.getName()+".xlsx");
+        	emailService.sendEmailWithAttachment(user.getEmail(), "Customer Leads", "Please find the Excel file attached.", excelBytes, user.getName()+ "_"+formattedDate +".xlsx");
 	        System.out.println("ESJSSK*************************");
         }
         }catch(Exception e){

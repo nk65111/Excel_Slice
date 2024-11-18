@@ -58,7 +58,7 @@ public class EmailServiceImpl  implements EmailService{
             InternetAddress to = new InternetAddress(toEmail);
             Message message = new MimeMessage(session);
             message.setRecipient(Message.RecipientType.TO, to);
-            message.setFrom(new InternetAddress(from, "Nitin"));
+            message.setFrom(new InternetAddress(from, "DMT-Manager"));
             message.setSubject(subject);
 
             // Create the message part 
